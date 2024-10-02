@@ -94,32 +94,40 @@ void initController()
   OC_SETUP(PS2_AKN); // Switch to input with Pullup . Not used by now
   // setup pins and settings: GamePad(clock, command, attention, data, Pressures?, Rumble?) check for error
   error = ps2x.config_gamepad(PS2_CLK, PS2_CMD, PS2_SEL, PS2_DAT, pressures, rumble);
+  asm("WDR"); // Watchdog Reset will not happen
+
+  Serial.println(F("\n\n\nTRSI in 2024 presents : PSX64+ by Benson"));
+  Serial.println(F("based on PSX-lib by www.billporter.info\n"));
+  Serial.println(F("supports PSX-Guitar :"));
+  Serial.println(F("   Open Jumper : Shredz64 mode."));
+  Serial.println(F("   Closed Jumper : Whammy and Strum as analog values on the POT"));
+  Serial.println(F("and DualShock Controller"));
+  Serial.println(F("   Left digital as Joystick, square for fire"));
+  Serial.println(F("   Right analog as paddles"));
+
+ 
+  
 
   if (error == 0)
   {
-    Serial.println("\n\n\nTRSI in 2024 presents : PSX64+ by Benson");
-    Serial.println("based on PSX-lib by www.billporter.info\n");
-    Serial.println("supports PSX-Guitar :");
-    Serial.println("   Open Jumper : Shredz64 mode.");
-    Serial.println("   Closed Jumper : Whammy and Strum as analog values on the POT");
-    Serial.println("and DualShock Controller");
-    Serial.println("   Left digital as Joystick, square for fire");
-    Serial.println("   Right analog as paddles");
-    
-    Serial.println("Found Controller, configured successful ");
+        
+    Serial.println(F("Found Controller, configured successful "));
 
   }
   else if (error == 1)
-    Serial.println("No controller found, check wiring, see readme.txt to enable debug. visit www.billporter.info for troubleshooting tips");
+    Serial.println(F("No controller found, check wiring, see readme.txt to enable debug. visit www.billporter.info for troubleshooting tips"));
 
   else if (error == 2)
-    Serial.println("Controller found but not accepting commands. see readme.txt to enable debug. Visit www.billporter.info for troubleshooting tips");
+    Serial.println(F("Controller found but not accepting commands. see readme.txt to enable debug. Visit www.billporter.info for troubleshooting tips"));
 
   else if (error == 3)
-    Serial.println("Controller refusing to enter Pressures mode, may not support it. ");
+    Serial.println(F("Controller refusing to enter Pressures mode, may not support it. "));
 
   //  Serial.print(ps2x.Analog(1), HEX);
 
+  delay (100);
+  
+ 
   type = ps2x.readType();
   switch (type)
   {
@@ -160,14 +168,14 @@ int checkPsxButton(unsigned int psx_button, int joy_button, const char *caption)
   if (ps2x.ButtonPressed(psx_button))
   {
     Serial.print(caption);
-    Serial.println(" Pressed");
+    Serial.println(F(" Pressed"));
     OC_WRITE_LOW(joy_button);
     ret = 1;
   }
   if (ps2x.ButtonReleased(psx_button))
   {
     Serial.print(caption);
-    Serial.println(" Released");
+    Serial.println(F(" Released"));
     OC_WRITE_HI(joy_button);
     ret = 2;
   }
@@ -198,37 +206,37 @@ void readContoller()
 
     if (ps2x.ButtonPressed(STAR_POWER))
     {
-      Serial.println("Star Power Command on");
+      Serial.println(F("Star Power Command on"));
       mcp4151_writeValue(POTB_CS, SHREDZ_STAR_POWER);
       star_pressed=true;
     }
 
     if (ps2x.ButtonReleased(STAR_POWER))
     {
-      Serial.println("Star Power Command off");
+      Serial.println(F("Star Power Command off"));
       mcp4151_writeValue(POTB_CS, SHREDZ_NONE);
       star_pressed=false;
     }
 
     if (shredz_mode){
       if(ps2x.ButtonPressed(UP_STRUM)){
-        Serial.println("Strum up pressed");
+        Serial.println(F("Strum up pressed"));
         mcp4151_writeValue(POTA_CS,SHREDZ_STRUM_UP);
       }
 
       if (ps2x.ButtonReleased(UP_STRUM))
       {
-        Serial.println("Strum up released");
+        Serial.println(F("Strum up released"));
         mcp4151_writeValue(POTA_CS, SHREDZ_NONE);
       }
 
       if(ps2x.ButtonPressed(DOWN_STRUM)){
-        Serial.println("Strum down pressed");
+        Serial.println(F("Strum down pressed"));
         mcp4151_writeValue(POTA_CS,SHREDZ_STRUM_DOWN);
       }
 
       if(ps2x.ButtonReleased(DOWN_STRUM)){
-        Serial.println("Strum down released");
+        Serial.println(F("Strum down released"));
         mcp4151_writeValue(POTA_CS,SHREDZ_NONE);
       }
     }
@@ -240,7 +248,7 @@ void readContoller()
         {
           strum_val+=3;
         }
-        Serial.print("Up Strum :0x");
+        Serial.print(F("Up Strum :0x"));
         Serial.println(strum_val, HEX);
         mcp4151_writeValue(POTA_CS, strum_val);
       }
@@ -250,20 +258,20 @@ void readContoller()
         {
           strum_val-=3;
         }
-        Serial.print("Down Strum :0x");
+        Serial.print(F("Down Strum :0x"));
         Serial.println(strum_val, HEX);
         mcp4151_writeValue(POTA_CS, strum_val);
       }
     }
     if (ps2x.Button(PSB_START)) // will be TRUE as long as button is pressed
-      Serial.println("Start is being held");
+      Serial.println(F("Start is being held"));
     if (ps2x.Button(PSB_SELECT))
-      Serial.println("Select is being held");
+      Serial.println(F("Select is being held"));
 
     whammy_val = ps2x.Analog(WHAMMY_BAR);
     if (whammy_val != whammy_val_old)
     {
-      Serial.print("Wammy Bar Position:");
+      Serial.print(F("Wammy Bar Position:"));
       Serial.println(whammy_val, DEC);
       whammy_val_old = whammy_val;
     }
@@ -352,7 +360,7 @@ void loop()
   digitalWrite(LED_BUILTIN, 1);
   mode = digitalRead(MODE_SELECT);
   if (mode != shredz_mode){
-    Serial.print ("Mode change: ShredzMode is ");
+    Serial.print (F("Mode change: ShredzMode is "));
     if (!mode){
       Serial.println("off");
     }else{
